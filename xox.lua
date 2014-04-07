@@ -7,19 +7,22 @@ local GoUpz = 0
 local CHC = 0
 local GoUpC = 0
 local ply = LocalPlayer()
-local trace = util.GetPlayerTrace( ply )
-local traceRes = util.TraceLine( trace )
-local aimboton = 0
+local aimboton = false
 local aimbotbone = "ValveBiped.Bip01_Head1"
 OutsideState = "Rotating"
 InsideState = "Rotating"
 
-InsideColor = 255,255,255,255
-OutSideColor = 255,255,255,255
-CircleColor = 255,255,255,255
- 
+InsideColor = Color(255,255,255,255)
+OutSideColor = Color(255,255,255,255)
+CircleColor = Color(255,255,255,255)
+
+
+Inside_Rotation_Speed = 6
+Outside_Rotation_Speed = 3
+
+CreateClientConVar("XoX_Build", 1)
+CreateClientConVar("XoX_Build_Trace_All", 1)
 CreateClientConVar("XoX_Draw_Gmod_HUD", 0)
-CreateClientConVar("XoX_Aimbot_MaxAngle", 360)
 CreateClientConVar("XoX_HUD_Draw_Healthbar", 1)
 CreateClientConVar("XoX_HUD_Draw_Armorbar", 1)
 CreateClientConVar("XoX_Crosshair_Draw_Circle", 1)
@@ -32,38 +35,32 @@ CreateClientConVar("XoX_Crosshair_Draw_Inside", 1)
 CreateClientConVar("XoX_Radar_Pos_X", 20)
 CreateClientConVar("XoX_Radar_Pos_Y", 20)
 CreateClientConVar("XoX_Radar_Width", 300)
-CreateClientConVar("XoX_Radar_Draw",1)
-CreateClientConVar("XoX_Printer_Draw",1)
+CreateClientConVar("XoX_Radar_Draw",0)
 CreateClientConVar("XoX_ESP_Draw",1)
 CreateClientConVar("XoX_ESP_Enemy_Only",0)
 CreateClientConVar("XoX_Bhop",1)
 CreateClientConVar("XoX_Rapid_Fire",1)
 CreateClientConVar("XoX_Rapid_Use",1)
 CreateClientConVar("XoX_Rapid_Flash",1)
-CreateClientConVar( "XoX_Crosshair_Color_Circle",0 )
-CreateClientConVar( "XoX_Crosshair_Color_Inside",0 )
-CreateClientConVar( "XoX_Crosshair_Color_Outside",0 )
-CreateClientConVar( "XoX_ShowPos",0 )
+CreateClientConVar("XoX_Crosshair_Color_Circle",0 )
+CreateClientConVar("XoX_Crosshair_Color_Inside",0 )
+CreateClientConVar("XoX_Crosshair_Color_Outside",0 )
+CreateClientConVar("XoX_ShowPos",0 )
 
-	Inside_Rotation_Speed = 6
-	Outside_Rotation_Speed = 3
 	
-		local function Jump()
-		ply:ConCommand("+jump")
-		timer.Simple(0.1,
-			function()
+local function Jump()
+	ply:ConCommand("+jump")
+	timer.Simple(0.1,function()
 				ply:ConCommand("-jump")
-			end
-		)
-	end
-	
-	hook.Add("Think","SuperJump",
-		function()
-			if(ply.SJump and ply:IsOnGround())then
-				Jump()
-			end
 		end
 	)
+end
+	
+hook.Add("Think","SuperJump",function()
+if(ply.SJump and ply:IsOnGround())then
+	Jump()
+	end
+end)
 	
 	concommand.Add("+XoX_Bhop",function(pl,com,args)
 	if GetConVar("XoX_Bhop"):GetInt() > 0 then
@@ -169,12 +166,6 @@ local function SuperAttack()
 	end)
 	
 	
-	concommand.Add("PhysToolSwap",function(pl,com,args)
-		if ply:GetActiveWeapon():GetPrintName() == "Tool Gun" then RunConsoleCommand( "use", "weapon_physgun" )
-		else RunConsoleCommand( "use", "weapon_toolgun") end
-		end)
-	
-	
 ------------------------------------------------------------
 
 local function OpenScript(p,com,arg)
@@ -192,48 +183,202 @@ local function LuaRunHack(p,com,arg)
 end
 
 concommand.Add("XoX_lua_run",LuaRunHack)
+
+
+concommand.Add("XoX_e2_download",function()
+
+
+
+
+
+
+
+end)
+
 	
 function DrawESP()
-	if GetConVar("XoX_ESP_Draw"):GetInt() > 0 then
-		for k, plys in pairs(player.GetAll()) do
-			if plys != ply then
-			if GetConVar("XoX_ESP_Enemy_Only"):GetInt() > 0 and ply:Team() == plys:Team() then
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	if GetConVar("XoX_Build"):GetInt() > 0 then
+		
+		surface.SetDrawColor(Color(255,0,170,80))
+		surface.DrawRect(10, ScrH()/2 - 200, 300, 250)
+				
+		surface.SetTextColor( 255,255,255 )
+		surface.SetFont("Default")
+		local trace = util.GetPlayerTrace( ply )
+		local traceRes = util.TraceLine( trace )
+		if traceRes.HitNonWorld then
+			local target = traceRes.Entity
+			if target:IsPlayer() then
+				
+				if GetConVar("XoX_Build_Trace_All"):GetInt() < 1 then
+					local tracep = util.GetPlayerTrace( target )
+					local traceResp = util.TraceLine( tracep )
+					local eyepos = traceResp.StartPos:ToScreen()
+					local aimpos = traceResp.HitPos:ToScreen()
+					surface.SetDrawColor(Color(0,255,0,255))
+					surface.DrawLine(eyepos.x,eyepos.y,aimpos.x,aimpos.y)
+				end
+				
+				
+				surface.SetTextPos(40,ScrH()/2 - 180)
+				surface.DrawText("Target: Player")
+				surface.SetTextPos(40,ScrH()/2 - 160)
+				surface.DrawText("Name: " .. target:GetName())
+				surface.SetTextPos(40,ScrH()/2 - 140)
+				surface.DrawText("Health: " .. target:Health())
+			
+				surface.SetTextPos(40,ScrH()/2 - 120)
+				if target:GetActiveWeapon() then
+					surface.DrawText("Weapon: " .. target:GetActiveWeapon():GetClass())
+				end
+				surface.SetTextPos(40,ScrH()/2 - 100)
+				surface.DrawText("Position:")
+				surface.SetTextPos(40,ScrH()/2 - 80)
+				surface.DrawText("  X: " .. math.floor( target:GetPos().x ).. " ( " .. math.floor(target:GetPos().x - LocalPlayer():GetPos().x ).. " ) " )
+				surface.SetTextPos(40,ScrH()/2 - 60)
+				surface.DrawText("  Y: " .. math.floor(target:GetPos().y ).. " ( " .. math.floor(target:GetPos().y - LocalPlayer():GetPos().y ).. " ) " )
+				surface.SetTextPos(40,ScrH()/2 - 40)
+				surface.DrawText("  Z: " .. math.floor(target:GetPos().z ).. " ( " .. math.floor(target:GetPos().z - LocalPlayer():GetPos().z ).. " ) " )
+				
+				if NADMOD then
+					local Props = NADMOD.PropOwners
+					net.Receive("nadmod_propowners",function(len) 
+						local num = net.ReadUInt(16)
+						for k=1,num do
+							local id,str = net.ReadUInt(16), net.ReadString()
+							if str == "-" then Props[id] = nil 
+							elseif str == "W" then Props[id] = "World"
+							elseif str == "O" then Props[id] = "Ownerless"
+							else Props[id] = str
+							end
+						end
+					end)
+				
+					cam.Start3D(EyePos(), EyeAngles())
+					render.SetColorModulation( 1, 0.5, 1)
+					render.SuppressEngineLighting( true )
+					for k,v in pairs(ents.GetAll()) do
+						if v:IsValid() and !v:IsPlayer() then
+							if Props[v:EntIndex()] == target:GetName() then
+								v:DrawModel()
+							end
+						end
+					end
+					render.SetColorModulation(1,1,1)	
+					render.SuppressEngineLighting( false )
 				else
+					cam.Start3D(EyePos(), EyeAngles())
+				end
+			elseif target:IsValid() then
+				surface.SetTextPos(40,ScrH()/2 - 180)
+				surface.DrawText("Target: " .. target:GetClass())
+				surface.SetTextPos(40,ScrH()/2 - 140)
+				surface.DrawText("Model: " .. target:GetModel())
+				surface.SetTextPos(40,ScrH()/2 - 120)
+				surface.DrawText("Material: " .. target:GetMaterial())
+				surface.SetTextPos(40,ScrH()/2 - 100)
+				surface.DrawText("Color: (" .. target:GetColor().r .. "," ..target:GetColor().g .. "," ..target:GetColor().b .. "):" ..target:GetColor().a)
+				surface.SetTextPos(40,ScrH()/2 - 80)
+				surface.DrawText("  X: " .. math.floor( target:GetPos().x ).. " ( " .. math.floor(target:GetPos().x - LocalPlayer():GetPos().x ).. " ) " )
+				surface.SetTextPos(40,ScrH()/2 - 60)
+				surface.DrawText("  Y: " .. math.floor(target:GetPos().y ).. " ( " .. math.floor(target:GetPos().y - LocalPlayer():GetPos().y ).. " ) " )
+				surface.SetTextPos(40,ScrH()/2 - 40)
+				surface.DrawText("  Z: " .. math.floor(target:GetPos().z ).. " ( " .. math.floor(target:GetPos().z - LocalPlayer():GetPos().z ).. " ) " )
+				
+				
+				cam.Start3D(EyePos(), EyeAngles())
+			else
+				cam.Start3D(EyePos(), EyeAngles())
+			end
+		else
+			surface.SetTextPos(40,ScrH()/2 - 180)
+			surface.DrawText("Target: World")
+			cam.Start3D(EyePos(), EyeAngles())
+		end
+	else
+		cam.Start3D(EyePos(), EyeAngles())
+	end
+		
+	if GetConVar("XoX_ESP_Draw"):GetInt() > 0 then
+		for k, plys in ipairs(player.GetAll()) do
+			if plys != ply then
+			if not ply:Team() == plys:Team() or GetConVar("XoX_ESP_Enemy_Only"):GetInt() < 1 then
+				local oldmat = plys:GetMaterial()
 				allplayersposition = plys:GetPos() + plys:OBBCenter()
-				playerposition = allplayersposition:ToScreen()
+				playerposition = allplayersposition:ToScreen()		
+				
+				render.SuppressEngineLighting( true )
 				plysColor = team.GetColor(plys:Team())
-				surface.SetDrawColor(plysColor)
-				surface.DrawOutlinedRect( playerposition.x - 32 / 2, playerposition.y - 32 / 2, 32, 32)
-				boxHeightDividedBy2 = 32 / 2
-				surface.SetTextColor( plysColor )
-				surface.SetTextPos(playerposition.x,playerposition.y - boxHeightDividedBy2 - 16)
-				surface.SetFont("Default")
-				surface.DrawText(plys:GetName())
+				if evolve then
+					plysColor =	evolve.ranks[ plys:EV_GetRank() ].Color
+				end
+				
+				render.SetColorModulation( (plysColor.r/255), (plysColor.g/255), (plysColor.b/255) )
+				plys:SetMaterial("models/shiny")
+				plys:DrawModel()
+				render.SetColorModulation(1,1,1)		
+				render.SuppressEngineLighting( false )
+				plys:SetMaterial(oldmat)
+			end
+			end
+		end
+		
+		for k,v in pairs(ents.FindByModel("models/expression 2/cpu_microchip_mini.mdl")) do
+			if v:GetClass() == "gmod_wire_expression2" then
+				render.SetColorModulation( 255,0,255 )
+				v:SetMaterial("models/shiny")
+				v:DrawModel()
+			end
+		end
+		
+				render.SetColorModulation(1,1,1)	
+		
+		cam.End3D()
+		
+		for k, plys in ipairs(player.GetAll()) do
+			if plys != ply then
+				if not ply:Team() == plys:Team() or GetConVar("XoX_ESP_Enemy_Only"):GetInt() < 1 then
+					local oldmat = plys:GetMaterial()
+					allplayersposition = plys:GetPos() + plys:OBBCenter()
+					playerposition = allplayersposition:ToScreen()
+					if GetConVar("XoX_Build_Trace_All"):GetInt() > 0 then
+						local tracep = util.GetPlayerTrace( plys )
+						local traceResp = util.TraceLine( tracep )				
+						local eyepos = traceResp.StartPos:ToScreen()
+						local aimpos = traceResp.HitPos:ToScreen()
+						surface.SetDrawColor(Color(0,255,0,255))
+						surface.DrawLine(eyepos.x,eyepos.y,aimpos.x,aimpos.y)
+					end
+					plysColor = team.GetColor(plys:Team())
+					if evolve then
+						plysColor =	evolve.ranks[ plys:EV_GetRank() ].Color
+					end
+					surface.SetTextColor( ColorAlpha( plysColor , 1) )
+					surface.SetTextPos(playerposition.x,playerposition.y)
+					surface.SetFont("Default")
+					surface.DrawText("  " .. plys:GetName())
 				end
 			end
 		end
+	else
+		cam.End3D()
 	end
+	
 end
-
-function DrawPrinters()
-
---if GetConVar("XoX_Printer_Draw"):GetInt() > 0 then
---local printers = ents.FindByModel("models/Gibs/HGIBS.mdl")
-local printers = ents.FindByClass("money*")
-		for i = 1, #printers do
-				allprinterpos = printers[i]:GetPos() + printers[i]:OBBCenter()
-				printerpos = allprinterpos:ToScreen()
-				surface.SetDrawColor(Color(255,0,0))
-				surface.DrawOutlinedRect( printerpos.x - 32 / 2, printerpos.y - 32 / 2, 32, 32)
-				boxHeightDividedBy2 = 32 / 2
-				surface.SetTextColor( Color(255,0,0) )
-				surface.SetTextPos(printerpos.x,printerpos.y - boxHeightDividedBy2 - 16)
-				surface.SetFont("Default")
-				surface.DrawText(printers[i]:GetClass())
-		end
---	end
-end
-
 
 function Radar()
 	if GetConVar("XoX_Radar_Draw"):GetInt() > 0 then
@@ -248,9 +393,10 @@ function Radar()
 	end
 end
 
-surface.CreateFont ("coolvetica", 60, 1, true, false, "AmmoClipFont01") 
-surface.CreateFont ("coolvetica", 50, 1, true, false, "AmmoClipFont02") 
-surface.CreateFont ("MenuItem", 80, 1, true, false, "AmmoClipFont03") 
+surface.CreateFont ("AmmoClipFont01", {font = "coolvetica", size = 60}) 
+surface.CreateFont ("AmmoClipFont02", {font = "coolvetica", size = 50}) 
+surface.CreateFont ("AmmoClipFont03", {font = "MenuItem", size = 60}) 
+surface.CreateFont ("ConsoleText", {font = "coolvetica", size = 20}) 
 
 function AmmoClip()
 	local client = ply
@@ -413,95 +559,42 @@ end)
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function AngleDist( Angle1, Angle2 )
-local dist = 0
-pp = math.AngleDifference( Angle1.p , Angle2.p)
-yy = math.AngleDifference( Angle1.y , Angle2.y)
-rr = math.AngleDifference( Angle1.r , Angle2.r)
-dist = math.abs(rr) + math.abs(yy) + math.abs(pp) 
-return dist
-end
-
-
-
 function aimbot()
-if aimboton == 1 then
-playerlist = player.GetAll()
-nearestdis = 10000
-nearestply = nil
-
-for i = 1, #playerlist do
-
-local fortargethead = playerlist[i]:LookupBone(aimbotbone)
-local fortargetheadpos,fortargetheadang = playerlist[i]:GetBonePosition(fortargethead)
-
-local tracedata = {}
-tracedata.start = ply:GetShootPos()
-tracedata.endpos = fortargetheadpos
-local trace = util.TraceLine(tracedata)
-if trace.Entity:IsPlayer() then
-if playerlist[i] ~= ply && playerlist[i]:Alive() && AngleDist( (fortargetheadpos -  ply:GetShootPos()):Angle(), ply:GetAngles() ) < nearestdis then
-
-nearestdis = AngleDist( (fortargetheadpos - ply:GetShootPos()):Angle(), ply:GetAngles() )
-nearestply = playerlist[i]
-end
-end
-end
-
-
-if nearestply ~= nil then
-local targethead = nearestply:LookupBone(aimbotbone)
-local targetheadpos,targetheadang = nearestply:GetBonePosition(targethead)
-			ply:SetEyeAngles((targetheadpos - ply:GetShootPos()):Angle())
-else
-			
+if aimboton then
+		if !aimbotpl:Alive() then
+		local aimbotdist = 100000
+			aimbotpl = ""
+			for k,v in ipairs(player.GetAll()) do
+			if v ~= ply then
+		local aimbotx,aimboty = v:GetPos():ToScreen().x - ScrW() / 2 ,v:GetPos():ToScreen().y - ScrH() / 2 
+		local thisdist = math.sqrt( math.abs(aimbotx) ^ 2 + math.abs(aimboty) ^ 2)
+		if thisdist < aimbotdist and v ~= ply then aimbotpl = v;aimbotdist = thisdist end	
+	end
+	end
+		
+		end
+		local targethead = aimbotpl:LookupBone(aimbotbone)
+		local targetheadpos,targetheadang = aimbotpl:GetBonePosition(targethead)
+		ply:SetEyeAngles((targetheadpos - ply:GetShootPos()):Angle())
 end
 end	
-end
 
-concommand.Add("+XoX_Aim", function(pl,com,args)
-aimboton = 1
+concommand.Add("+XoX_Aimbot", function(pl,com,args)
+	aimboton = true
+	local aimbotdist = 100000
+	aimbotpl = ""
+	for k,v in ipairs(player.GetAll()) do
+	if v ~= ply then
+		local aimbotx,aimboty = v:GetPos():ToScreen().x - ScrW() / 2 ,v:GetPos():ToScreen().y - ScrH() / 2 
+		local thisdist = math.sqrt( math.abs(aimbotx) ^ 2 + math.abs(aimboty) ^ 2)
+		if thisdist < aimbotdist and v ~= ply then aimbotpl = v;aimbotdist = thisdist end	
+	end
+	end
 end)
 
-concommand.Add("-XoX_Aim", function(pl,com,args)
-aimboton = 0
+concommand.Add("-XoX_Aimbot", function(pl,com,args)
+	aimboton = false
 end)
-
-
---------------------------------
---------------------------------
-
-function Spawnstuff(plyy)
-if plyy:IsAdmin() or plyy:IsSuperAdmin() then
-GAMEMODE:AddNotify("Watch out! Admin ".. plyy:Nick() .." joined.", NOTIFY_ERROR, 5);
-GAMEMODE:AddNotify("Watch out! Admin ".. plyy:Nick() .." joined.", NOTIFY_ERROR, 5);
-GAMEMODE:AddNotify("Watch out! Admin ".. plyy:Nick() .." joined.", NOTIFY_ERROR, 5);
-GAMEMODE:AddNotify("Watch out! Admin ".. plyy:Nick() .." joined.", NOTIFY_ERROR, 5);
-GAMEMODE:AddNotify("Watch out! Admin ".. plyy:Nick() .." joined.", NOTIFY_ERROR, 5);
-GAMEMODE:AddNotify("Watch out! Admin ".. plyy:Nick() .." joined.", NOTIFY_ERROR, 5);
-GAMEMODE:AddNotify("Watch out! Admin ".. plyy:Nick() .." joined.", NOTIFY_ERROR, 5);
-GAMEMODE:AddNotify("Watch out! Admin ".. plyy:Nick() .." joined.", NOTIFY_ERROR, 5);
-end
-   
-if plyy:IPAddress() ~= nil then
-        filex.Append("ips.txt", "Player "..plyy:Nick().." has connected from the IP "..plyy:IPAddress() .."  SteamID: " plyy:SteamID() " \n")
-        GAMEMODE:AddNotify("Player "..plyy:Nick().." has connected from the IP "..plyy:IPAddress())
-end
-end
-
-hook.Add( "PlayerInitialSpawn", "SpawnStuff",  SpawnStuff )
-
-concommand.Add("XoX_AdminScan", function(pl,com,args)
-print("Admins:")
-GAMEMODE:AddNotify("Admins:", NOTIFY_ERROR, 5);
-for i = 1, #player.GetAll() do
-if player.GetAll()[i]:IsAdmin() or player.GetAll()[i]:IsSuperAdmin() then
-GAMEMODE:AddNotify(player.GetAll()[i]:Nick(), NOTIFY_ERROR, 5);
-print(player.GetAll()[i]:Nick())
-end
-end
-end)
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -512,25 +605,25 @@ end)
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-Part1 = vgui.Create( "DBevel" )
+Part1 = vgui.Create( "DPanel" )
 Part1:SetSize( 200, 200 )
 Part1:SetPos( -200, 100 )
 Part1:SetVisible( false )
 Part1:MakePopup()
 
-Part2 = vgui.Create( "DBevel" )
+Part2 = vgui.Create( "DPanel" )
 Part2:SetSize( 200, 200 )
 Part2:SetPos( ScrW() + 200, 300 )
 Part2:SetVisible( false )
 Part2:MakePopup()
 
-Part3 = vgui.Create( "DBevel" )
+Part3 = vgui.Create( "DPanel" )
 Part3:SetSize( 200, 200 )
 Part3:SetPos( 100, ScrH() + 200 )
 Part3:SetVisible( false )
 Part3:MakePopup()
 
-Part4 = vgui.Create( "DBevel" )
+Part4 = vgui.Create( "DPanel" )
 Part4:SetSize( 200, 200 )
 Part4:SetPos( 300, -200 )
 Part4:SetVisible( false )
@@ -715,32 +808,6 @@ BtnOutside.DoClick = function()
 		OutsideMenu:Open()
 end
 
-InsideColorCircle = vgui.Create( "DColorCircle", Tab1 )
-InsideColorCircle:SetPos(0,90)
-InsideColorCircle:SetSize(66,66)
-InsideColorCircle.PaintOver = function()
-if InsideColorCircle:GetRGB() == nil then return end
-	InsideColor = InsideColorCircle:GetRGB() or Color()
-	InsideColor = InsideColor[r], InsideColor[g], InsideColor[b], InsideColor[a]
-end
-
-OutsideColorCircle = vgui.Create( "DColorCircle", Tab1 )
-OutsideColorCircle:SetPos(57.5,60)
-OutsideColorCircle:SetSize(66,66)
-OutsideColorCircle.PaintOver = function()
-if OutsideColorCircle:GetRGB() == nil then return end
-	OutsideColor = OutsideColorCircle:GetRGB() or Color()
-	OutsideColor = OutsideColor[r], OutsideColor[g], OutsideColor[b], OutsideColor[a]
-end
-
-CircleColorCircle = vgui.Create( "DColorCircle", Tab1 )
-CircleColorCircle:SetPos(115,90)
-CircleColorCircle:SetSize(66,66)
-CircleColorCircle.PaintOver = function()
-if CircleColorCircle:GetRGB() == nil then return end
-	CircleColor = CircleColorCircle:GetRGB() or Color()
-	CircleColor = CircleColor[r], CircleColor[g], CircleColor[b], CircleColor[a]
-end
 
 
 CBColorInside = vgui.Create("DCheckBoxLabel", Tab1)
@@ -813,7 +880,7 @@ Adminlist:SetPos(0,0)
 Adminlist:SetSize( 185,185)
 for k, plys in pairs(player.GetAll()) do
 	if plys:IsAdmin() or plys:IsSuperAdmin() then
-	Adminlist:AddItem(plys:GetName())
+	Adminlist:AddChoice(plys:GetName())
 	end
 end
 
@@ -960,6 +1027,19 @@ LabelMiscFlash = vgui.Create("DLabel", Part4)
 LabelMiscFlash:SetPos( 22 , 76 )
 LabelMiscFlash:SetText( "Flash Mod" )
 LabelMiscFlash:SetSize( 100 ,10 )
+
+LabelBuild = vgui.Create( "DLabel", Part3)
+LabelBuild:SetText( "Build Mode" )
+LabelBuild:SetSize( 100 ,10 )
+LabelBuild:SetPos( 5 ,100 )
+CBBuild = vgui.Create("DCheckBox", Part3)
+CBBuild:SetPos( 5 , 115 )
+CBBuild:SetText( "Enable" )
+CBBuild:SetConVar( "XoX_Build" )
+CBTrace = vgui.Create("DCheckBox", Part3)
+CBTrace:SetPos( 5 , 132 )
+CBTrace:SetText( "Trace" )
+CBTrace:SetConVar( "XoX_Build_Trace_All" )
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -971,20 +1051,24 @@ LabelMiscFlash:SetSize( 100 ,10 )
 --------------------------------------------------------------------------------
 
 function MenuBackground()
-	surface.SetDrawColor(CHx,CHy,CHz,225)
-	Part1x,Part1y = Part1:GetPos()
-	Part1w,Part1h = Part1:GetSize()
-    surface.DrawRect( Part1x, Part1y, Part1w, Part1h  )
-	Part2x,Part2y = Part2:GetPos()
-	Part2w,Part2h = Part2:GetSize()
-    surface.DrawRect( Part2x, Part2y, Part2w, Part2h  )
-	Part3x,Part3y = Part3:GetPos()
-	Part3w,Part3h = Part3:GetSize()
-    surface.DrawRect( Part3x, Part3y, Part3w, Part3h  )
-	Part4x,Part4y = Part4:GetPos()
-	Part4w,Part4h = Part4:GetSize()
-    surface.DrawRect( Part4x, Part4y, Part4w, Part4h  )
+	-- surface.SetDrawColor(CHx,CHy,CHz,225)
+	-- Part1x,Part1y = Part1:GetPos()
+	-- Part1w,Part1h = Part1:GetSize()
+    -- surface.DrawRect( Part1x, Part1y, Part1w, Part1h  )
+	-- Part2x,Part2y = Part2:GetPos()
+	-- Part2w,Part2h = Part2:GetSize()
+    -- surface.DrawRect( Part2x, Part2y, Part2w, Part2h  )
+	-- Part3x,Part3y = Part3:GetPos()
+	-- Part3w,Part3h = Part3:GetSize()
+    -- surface.DrawRect( Part3x, Part3y, Part3w, Part3h  )
+	-- Part4x,Part4y = Part4:GetPos()
+	-- Part4w,Part4h = Part4:GetSize()
+    -- surface.DrawRect( Part4x, Part4y, Part4w, Part4h  )
 	
+	Part1:SetBackgroundColor(Color( CHx, CHy, CHz))
+	Part2:SetBackgroundColor(Color( CHx, CHy, CHz))
+	Part3:SetBackgroundColor(Color( CHx, CHy, CHz))
+	Part4:SetBackgroundColor(Color( CHx, CHy, CHz))
 end
 
 function myHud()
@@ -994,13 +1078,8 @@ function myHud()
 	Radar()
 	MenuBackground()
 	DrawESP()
-	DrawPrinters()
 end
 
 hook.Add("HUDPaint","myHud",myHud)
 
 hook.Add("Think","aimbot",aimbot)
-
-
-
-
